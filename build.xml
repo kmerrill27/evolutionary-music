@@ -1,0 +1,29 @@
+<project name="evolutionary-music" default="dist" basedir=".">
+    <description>
+        Ant build file for evolutionary music project
+    </description>
+    <property name="src" location="src/evolmusic" />
+    <property name="build" location="bin/evolmusic" />
+    <property name="dist" location="dist/evolmusic" />
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init"
+        description="Compile the source code.">
+        <javac srcdir="${src}" destdir="${build}"/>
+    </target>
+
+    <target name="dist" depends="compile"
+        description="Generation the distribution.">
+        <mkdir dir="${dist}/lib"/>
+        <jar jarfile="${dist}/lib/evolmusic-${DSTAMP}.jar" basedir="${build}"/>
+    </target>
+
+    <target name="clean"
+        description="Clean up.">
+        <delete dir="${dist}"/>
+    </target>
+</project>
