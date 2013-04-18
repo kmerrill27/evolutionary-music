@@ -13,7 +13,9 @@ import java.util.Random;
  */
 public class RandomMelody {
 
-	private static String[] pitches = {"A", "B", "C", "D", "E", "F", "G", "R"};
+	private static final String REST = "R";
+	
+	private static String[] pitches = {"A", "B", "C", "D", "E", "F", "G", REST};
 	private static String[] octaves = {"4", "5", "6"};
 	private static String[] durations = {"w", "h", "q", "i", "s"};
 	private static HashMap<String, Double> durationMap = new HashMap<String, Double>();
@@ -26,7 +28,7 @@ public class RandomMelody {
 		this.melody = generateMelody(numMeasures, bpm);
 	}
 
-	public String getMelody() {
+	public String getMelodyString() {
 		return this.melody;
 	}
 
@@ -75,7 +77,7 @@ public class RandomMelody {
 				bpm -= durationMap.get(dur);
 				pitch = pitches[random.nextInt(pitches.length)];
 				// If rest is selected, octave is irrelevant.
-				if (pitch != "R") {
+				if (pitch != REST) {
 					pitch += octaves[random.nextInt(octaves.length)];
 				}
 				tempMeasure += pitch + dur + " ";
@@ -86,7 +88,8 @@ public class RandomMelody {
 
 	public static void main(String args[]) {
 		RandomMelody melody = new RandomMelody(4, 4);
-		MelodyPlayer player = new MelodyPlayer(melody.getMelody());
+		MelodyPlayer player = new MelodyPlayer(melody.getMelodyString());
+		System.out.println(melody.getMelodyString());
 		player.play();
 	}
 }
