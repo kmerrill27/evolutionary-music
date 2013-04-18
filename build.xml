@@ -3,9 +3,9 @@
     <description>
         Ant build file for evolutionary music project
     </description>
-    <property name="src.dir" location="src/evolmusic" />
+    <property name="src.dir" value="src/evolmusic" />
     <property name="build.dir" value="bin" />
-    <property name="classes.dir" value="${build.dir}/evolmusic"
+    <property name="classes.dir" value="${build.dir}/evolmusic" />
     <property name="jar.dir" value="${build.dir}/evolmusic/jar" />
     <property name="lib.dir" value="vendor" />
 
