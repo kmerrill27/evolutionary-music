@@ -4,23 +4,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 
+/**
+ * Converts a JFugue-compatible melody string to a 1-hot encoding
+ * of a melody.
+ * 
+ * @author Kim Merrill
+ *
+ */
+public class Bitifier implements Translator {
 
-public class Bitifier {
-
-	private static final int CHORD_LENGTH = 12;
-	private static final int NOTE_LENGTH = 25;
-	private static final String SPACE = " ";
-	private static final String PLUS = "+";
-	private static final String USER_RATING = "0.0 ";
-	private static final String[] OCTAVES = {"5", "6"};
-	private static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
-		"G#", "A", "A#", "B"};
+	private static final int CHORD_LENGTH = 12; // number of bits in chord
+	private static final String USER_RATING = "0.0 "; // default (unknown) user rating of song
 	private static final ArrayList<String> PITCHES = new ArrayList<String>(Arrays.asList(NOTES));
 
 	public Bitifier() {		
 	}
 
-	public String bitify(String song) {
+	@Override
+	public String translate(String song) {
 		String[] measures = song.split(SPACE);
 		String[] measure1 = splitChord(measures[0]);
 		String[] measure2 = splitChord(measures[1]);
@@ -29,9 +30,15 @@ public class Bitifier {
 	}
 
 	private String[] splitChord(String measure) {
+		String chord, melody;
 		int index = measure.lastIndexOf(PLUS);
-		String chord = measure.substring(0, index+1);
-		String melody = measure.substring(index+1, measure.length());
+		if (index < 0) {
+			chord = "";
+			melody = measure;
+		} else {
+			chord = measure.substring(0, index+1);
+			melody = measure.substring(index+1, measure.length());
+		}
 		return new String[]{chord, melody};
 	}
 
@@ -53,14 +60,21 @@ public class Bitifier {
 	private String bitifyChord(String[] notes) {
 		BitSet bitVector = new BitSet(CHORD_LENGTH);
 		for (String note : notes) {
-			bitVector.set(PITCHES.indexOf(note));
+			// Check for no chord case
+			if (!note.isEmpty()) {
+				bitVector.set(PITCHES.indexOf(note));
+			}
 		}
 		return makeBitString(bitVector, CHORD_LENGTH);
 	}
 
 	private String bitifyNote(String note) {
 		int offset = 1;
-		BitSet bitVector = new BitSet(NOTE_LENGTH);
+		BitSet bitVector = new BitSet(NOTE_BITS);
+
+		if(note.substring(0,1).equals(REST)) {
+			return bitifyRest(note);
+		}
 
 		int durIndex = note.indexOf("i");
 		String duration = note.substring(durIndex, note.length());
@@ -71,12 +85,24 @@ public class Bitifier {
 			offset += 12;
 		}
 		bitVector.set(PITCHES.indexOf(pitch) + offset);
-		String noteBitString = makeBitString(bitVector, NOTE_LENGTH);
-		String bitString = noteBitString;
-		for (int i = 1; i < duration.length(); i++) {
-			bitString += "1" + noteBitString.substring(1, noteBitString.length());
+		String bitString = makeBitString(bitVector, NOTE_BITS);
+		
+		return bitString + bitifyTiedOver(bitString, duration.length());
+	}
+
+	private String bitifyTiedOver(String noteBitString, int duration) {
+		String bitString = "";
+		noteBitString = "1" + noteBitString.substring(1, noteBitString.length());
+		for (int i = 1; i < duration; i++) {
+			bitString += noteBitString;
 		}
 		return bitString;
+	}
+
+	private String bitifyRest(String note) {
+		String duration = note.substring(1, note.length());
+		String bitString = makeBitString(new BitSet(NOTE_BITS), NOTE_BITS);
+		return bitString + bitifyTiedOver(bitString, duration.length());
 	}
 
 	private String makeBitString(BitSet bitVector, int length) {
@@ -89,14 +115,30 @@ public class Bitifier {
 	}
 
 	public static void main(String[] args) {
-		String melody = "C5w+D5w+E5w+F5w+A5w+E6i_B5i_A#5iii_G5i_A5i_D#5i C#5w+D5w+F5w+G5w+G#5w+B5w+D5i_F5i_C5ii_C#5ii_G5i_A5i";
-		System.out.println(melody);
-		Bitifier bitifier = new Bitifier();
-		String bitString = bitifier.bitify(melody);
-		Translator translator = new Translator();
-		melody = translator.translate(bitString);
-		System.out.println(melody);
 		MelodyPlayer player = new MelodyPlayer();
+		Notationizer notationizer = new Notationizer();
+		Bitifier bitifier = new Bitifier();
+
+		//String bitString = "0.9 1 0 1 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+		//String bitString = "0.6 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
+		//String bitString = "0.1 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0";
+		String bitString = "0.1 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+
+		// Test given melody
+		String melody = notationizer.translate(bitString);
+		//player.play(melody);
+		bitString = bitifier.translate(melody);
+		melody = notationizer.translate(bitString);
+		//player.play(melody);
+
+		// Test random melody
+		melody = new RandomMelody(2, 4).getMelodyString();
+		System.out.println(melody);
+		player.play(melody);
+		bitString = bitifier.translate(melody);
+		melody = notationizer.translate(bitString);
+		System.out.println(melody);
 		player.play(melody);
 	}
+
 }

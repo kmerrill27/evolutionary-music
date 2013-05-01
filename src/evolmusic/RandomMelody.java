@@ -17,7 +17,7 @@ public class RandomMelody {
 	private static final int MAX_CHORD_NOTES = 7;
 	
 	private static String[] pitches = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
-		"G#", "A", "A#", "B"};
+		"G#", "A", "A#", "B", REST};
 	private static final String[] OCTAVES = {"5", "6"};
 	private static String[] DURATIONS = {"i", "ii", "iii", "iiii", "iiiii", "iiiiii",
 		"iiiiiii", "iiiiiiii"};
@@ -102,12 +102,19 @@ public class RandomMelody {
 	 */
 	private String generateChord() {
 		int numNotes = random.nextInt(MAX_CHORD_NOTES);
+		String pitch;
 		String tempChord = "";
 		if (numNotes == 0) {
 			return "";
 		}
 		for (int i=0; i < numNotes; i++) {
-			tempChord += pitches[random.nextInt(pitches.length)] + OCTAVES[0] + "w" + "+";
+			// Exclude rest from chord formation
+			pitch = pitches[random.nextInt(pitches.length-1)];
+			if (tempChord.contains(pitch)) {
+				i--;
+			} else {
+				tempChord += pitch + OCTAVES[0] + "w" + "+";
+			}
 		}
 		return tempChord;
 	}

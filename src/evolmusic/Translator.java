@@ -1,11 +1,17 @@
 package evolmusic;
 
 /**
- * 
- * Translates a 1-hot encoding of a melody into a JFugue-compatible string
- * for playback.
+ * Interface for converting between bit strings and JFugue-compatible strings.
  * 
  * @author Kim Merrill
+ * 
+ *  * JFugue string:
+ * "+" indicates that notes should be played together and "_" indicates
+ * that notes should be played in sequence.
+ * 
+ * C5w+D5w+F5w+A5w+A6i_B6i_G6i_A6i_F6i_D6i_C6i_B5i
+ * D5w+F5w+G5w+B5w+G#5i_B5i_G5i_F5i_G5i_G#5i_E5i_C5i
+ * 
  * 
  * Bit string (dimension 424):
  * The first number is a user-added rating. 0.0 if unknown.
@@ -28,204 +34,23 @@ package evolmusic;
  * 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
  * 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
  * 0 0 0 0 0 0
- * 
- * JFugue string:
- * "+" indicates that notes should be played together and "_" indicates
- * that notes should be played in sequence.
- * 
- * C5w+D5w+F5w+A5w+A6i_B6i_G6i_A6i_F6i_D6i_C6i_B5i
- * D5w+F5w+G5w+B5w+G#5i_B5i_G5i_F5i_G5i_G#5i_E5i_C5i
  *
  */
-public class Translator {
+public interface Translator {
 
-	private static final int NUM_NOTES = 16; // two 4/4 measures with min of eighth notes
-	private static final String NOTE = "1"; // 1-hot encoding of notes
-	private static final int NOTE_BITS = 25; // number of bits representing a note
-	private static final String EIGHTH_NOTE = "i";
-	private static final String WHOLE_NOTE = "w";
-	private static final String REST = "R";
-	private static final String TIED = "T"; // indicates if a note is tied over
-	private static final String SPACE = " ";
-	private static final int[] OCTAVES = {5, 6}; // possible octaves
-	private static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
+	public static final String SPACE = " ";
+	public static final String PLUS = "+";
+	public static final String REST = "R";
+	public static final int NOTE_BITS = 25; // number of bits representing a note
+	public static final String[] OCTAVES = {"5", "6"}; // possible octaves
+	public static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
 		"G#", "A", "A#", "B"}; // one-octave harmonic scale
 
-	private String chord1, chord2, melody1, melody2;
-
-	public Translator() {
-	}
-
 	/**
-	 * Translates a 424-dimension bit string encoding of a
-	 * 4/4 two-measure song fragment into a JFugue-formatted
-	 * song representation.
+	 * Translates between bit strings and JFugue-compatible melody strings.
 	 * 
-	 * @pre bitString has dimension of 424, length of 851
-	 * 
-	 * @param bitString 1-hot encoding of melody
-	 * @return song string formatted for JFugue playback
+	 * @param originalRepr original song representation
+	 * @return string representing song translation to opposite format
 	 */
-	public String translate(String bitString) {
-		assert(bitString.length() == 851);
-		bitString = preprocess(bitString);
-		parse(bitString);
-		String song = formatSong();
-		return song;
-	}
-
-	/**
-	 * Prepares bit string for parsing by removing spaces and
-	 * user-rating characters.
-	 * 
-	 * @param bitString 1-hot encoding of melody
-	 * @return parse-able bit string
-	 */
-	private String preprocess(String bitString) {
-		melody1 = "";
-		melody2 = "";
-		// Ignore first number, which is the user rating
-		int firstSpace = bitString.indexOf(SPACE);
-		bitString = bitString.substring(firstSpace, bitString.length());
-		// Remove all spaces
-		return bitString.replaceAll("\\s","");
-	}
-
-	/**
-	 * Separate the bit sequences for each chord and note and convert
-	 * them to their corresponding pitches.
-	 * 
-	 * @param bitString 1-hot encoding of melody
-	 */
-	private void parse(String bitString) {
-		chord1 = parseChord(bitString.substring(0, 12));
-		chord2 = parseChord(bitString.substring(12, 24));
-		String notes1 = bitString.substring(24, 224);
-		String notes2 = bitString.substring(224, bitString.length());
-		// Parse each note individually
-		for(int i = 0; i < NUM_NOTES/2; i++) {
-			melody1 += parseNote(notes1.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
-					+ EIGHTH_NOTE + "_";
-			melody2 += parseNote(notes2.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
-					+ EIGHTH_NOTE + "_";
-		}
-	}
-
-	/**
-	 * Determines pitches of each note in the chord.
-	 * 
-	 * @param bitString 1-hot encoding of chord
-	 * @return chord string of pitches - e.x. C+E+G
-	 */
-	private String parseChord(String bitString) {
-		StringBuilder tempChord = new StringBuilder();
-		int index = bitString.indexOf(NOTE);
-		// Check if the chord has no notes
-		if (index < 0) {
-			return "";
-		}
-		while(index >= 0) {
-			tempChord.append(NOTES[index] + "+");
-			index = bitString.indexOf(NOTE, index+1);
-		}
-		// Remove trailing "+"
-		return tempChord.deleteCharAt(tempChord.length()-1).toString();
-	}
-
-	/**
-	 * Determine pitch of note.
-	 * NOTE: does not error-check - i.e. ignores 1s after the first if more
-	 * than one bit is set
-	 * @param bitString 1-hot encoding of a harmonic scale
-	 * @return note string with pitch and octave - i.e. C5
-	 */
-	private String parseNote(String bitString) {
-		String tempNote = "";
-		// Indicate tied-over notes with a "T" for future processing
-		if (bitString.indexOf(NOTE) == 0) {
-			tempNote += "T";
-		}
-		bitString = bitString.substring(1, bitString.length());
-		int index = bitString.indexOf(NOTE);
-		int octave = OCTAVES[0];
-		// If no bits are set, the note is a rest
-		if (index < 0) {
-			return REST;
-		} else if (index > 11) {
-			// Find the pitch and set to the higher octave
-			index = index-12;
-			octave = OCTAVES[1];
-		}
-		tempNote += NOTES[index] + octave;
-		return tempNote;
-	}
-
-
-	/**
-	 * Formats and combines notes into final JFugue format.
-	 * 
-	 * @return JFugue-formatted melody string
-	 */
-	private String formatSong() {
-		return formatChord(chord1) + formatMelody(melody1) + " " +
-				formatChord(chord2) + formatMelody(melody2);
-	}
-
-	/**
-	 * Adds octave and duration to notes to create chord.
-	 * A chord is a grouping of whole notes played simultaneously.
-	 * 
-	 * @param chordString notes in chord - e.x. C+E+G
-	 * @return JFugue-formatted chord for prepending - e.x. C5w+E5w+G5w+
-	 */
-	private String formatChord(String chordString) {
-		// If chord is a rest, do not specify octave
-		if (chordString == "") {
-			return "";
-		}
-		StringBuilder formatChord = new StringBuilder();
-		// Separate out each note in the chord
-		String[] chordArray = chordString.split("\\+");
-		for (String chord : chordArray) {
-			// Chords are always played in the lower octave
-			formatChord.append(chord + OCTAVES[0] + WHOLE_NOTE + "+");
-		}
-		return formatChord.toString();
-	}
-
-	/**
-	 * Collapses tied notes to be listed as a single note with a longer duration.
-	 * NOTE: does not error-check - i.e. if a note is not the same as the note
-	 * to which it is tied over, it will take the pitch of the first note
-	 * 
-	 * @param noteString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
-	 * @return JFugue-formatted 4/4 measure - e.x. A6ii_G6i_A6i_F6i_D6i_C6i_B5i
-	 */
-	private String formatMelody(String melodyString) {
-		StringBuilder formatMelody = new StringBuilder(melodyString);
-		// Remove trailing "_"
-		formatMelody.deleteCharAt(formatMelody.length()-1);
-		// Find all tied notes, indicated by "T", and collapse them
-		int tiedIndex = formatMelody.indexOf(TIED);
-		while (tiedIndex > 0) {
-			int ind = formatMelody.indexOf("_", tiedIndex);
-			formatMelody.delete(tiedIndex, ind+1);
-			// "i" indicates eighth note, "ii" indicates quarter note, etc.
-			formatMelody.insert(tiedIndex-1, "i");
-			tiedIndex = formatMelody.indexOf(TIED);
-		}
-		return formatMelody.toString();
-	}
-	
-	public static void main(String[] args) {
-		//String bitString = "0.9 1 0 1 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-		//String bitString = "0.6 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
-		//String bitString = "0.1 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0";
-		String bitString = "0.1 1 0 1 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-		
-		Translator translator = new Translator();
-		String melody = translator.translate(bitString);
-		MelodyPlayer test = new MelodyPlayer();
-		test.play(melody);
-	}
+	public String translate(String originalRepr);
 }
