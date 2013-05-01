@@ -51,9 +51,7 @@ public class Translator {
 	private static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
 		"G#", "A", "A#", "B"}; // one-octave harmonic scale
 
-	private String chord1, chord2;
-	private String measure1 = "";
-	private String measure2 = "";
+	private String chord1, chord2, melody1, melody2;
 
 	public Translator() {
 	}
@@ -61,20 +59,19 @@ public class Translator {
 	/**
 	 * Translates a 424-dimension bit string encoding of a
 	 * 4/4 two-measure song fragment into a JFugue-formatted
-	 * melody representation.
+	 * song representation.
 	 * 
 	 * @pre bitString has dimension of 424, length of 851
 	 * 
 	 * @param bitString 1-hot encoding of melody
-	 * @return melody string formatted for JFugue playback
+	 * @return song string formatted for JFugue playback
 	 */
 	public String translate(String bitString) {
 		assert(bitString.length() == 851);
 		bitString = preprocess(bitString);
 		parse(bitString);
-		String melody = formatMelody();
-		System.out.println(melody);
-		return melody;
+		String song = formatSong();
+		return song;
 	}
 
 	/**
@@ -85,6 +82,8 @@ public class Translator {
 	 * @return parse-able bit string
 	 */
 	private String preprocess(String bitString) {
+		melody1 = "";
+		melody2 = "";
 		// Ignore first number, which is the user rating
 		int firstSpace = bitString.indexOf(SPACE);
 		bitString = bitString.substring(firstSpace, bitString.length());
@@ -105,9 +104,9 @@ public class Translator {
 		String notes2 = bitString.substring(224, bitString.length());
 		// Parse each note individually
 		for(int i = 0; i < NUM_NOTES/2; i++) {
-			measure1 += parseNote(notes1.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
+			melody1 += parseNote(notes1.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
 					+ EIGHTH_NOTE + "_";
-			measure2 += parseNote(notes2.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
+			melody2 += parseNote(notes2.substring(i*NOTE_BITS, i*NOTE_BITS+NOTE_BITS))
 					+ EIGHTH_NOTE + "_";
 		}
 	}
@@ -167,9 +166,9 @@ public class Translator {
 	 * 
 	 * @return JFugue-formatted melody string
 	 */
-	private String formatMelody() {
-		return formatChord(chord1) + formatMeasure(measure1) + " " +
-				formatChord(chord2) + formatMeasure(measure2);
+	private String formatSong() {
+		return formatChord(chord1) + formatMelody(melody1) + " " +
+				formatChord(chord2) + formatMelody(melody2);
 	}
 
 	/**
@@ -202,20 +201,20 @@ public class Translator {
 	 * @param noteString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
 	 * @return JFugue-formatted 4/4 measure - e.x. A6ii_G6i_A6i_F6i_D6i_C6i_B5i
 	 */
-	private String formatMeasure(String noteString) {
-		StringBuilder formatNote = new StringBuilder(noteString);
+	private String formatMelody(String melodyString) {
+		StringBuilder formatMelody = new StringBuilder(melodyString);
 		// Remove trailing "_"
-		formatNote.deleteCharAt(formatNote.length()-1);
+		formatMelody.deleteCharAt(formatMelody.length()-1);
 		// Find all tied notes, indicated by "T", and collapse them
-		int tiedIndex = formatNote.indexOf(TIED);
+		int tiedIndex = formatMelody.indexOf(TIED);
 		while (tiedIndex > 0) {
-			int ind = formatNote.indexOf("_", tiedIndex);
-			formatNote.delete(tiedIndex, ind+1);
+			int ind = formatMelody.indexOf("_", tiedIndex);
+			formatMelody.delete(tiedIndex, ind+1);
 			// "i" indicates eighth note, "ii" indicates quarter note, etc.
-			formatNote.insert(tiedIndex-1, "i");
-			tiedIndex = formatNote.indexOf(TIED);
+			formatMelody.insert(tiedIndex-1, "i");
+			tiedIndex = formatMelody.indexOf(TIED);
 		}
-		return formatNote.toString();
+		return formatMelody.toString();
 	}
 	
 	public static void main(String[] args) {
@@ -226,7 +225,7 @@ public class Translator {
 		
 		Translator translator = new Translator();
 		String melody = translator.translate(bitString);
-		MelodyPlayer test = new MelodyPlayer(melody);
-		test.play();
+		MelodyPlayer test = new MelodyPlayer();
+		test.play(melody);
 	}
 }

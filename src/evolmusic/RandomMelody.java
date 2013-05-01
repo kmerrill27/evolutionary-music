@@ -114,8 +114,8 @@ public class RandomMelody {
 
 	public static void main(String args[]) {
 		RandomMelody melody = new RandomMelody(2, 4);
-		MelodyPlayer player = new MelodyPlayer(melody.getMelodyString());
+		MelodyPlayer player = new MelodyPlayer();
 		System.out.println(melody.getMelodyString());
-		player.play();
+		player.play(melody.getMelodyString());
 	}
 }

@@ -11,20 +11,17 @@ import org.jfugue.*;
  */
 public class MelodyPlayer {
 
-	private String melody;
-
-	public MelodyPlayer(String melody) {
-		this.melody = melody;
+	public MelodyPlayer() {
 	}
 
-	public void play() {
+	public void play(String melody) {
 		Player player = new Player();
 		Pattern pattern = new Pattern(melody);
 		player.play(pattern);
 	}
 
 	public static void main(String args[]) {
-		MelodyPlayer test = new MelodyPlayer("C6i D6h Rw E5h F4h G5w A5q B6w");
-		test.play();
+		MelodyPlayer test = new MelodyPlayer();
+		test.play("C6i D6h Rw E5h F4h G5w A5q B6w");
 	}
 }
