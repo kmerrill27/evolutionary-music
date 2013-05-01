@@ -19,9 +19,4 @@ public class MelodyPlayer {
 		Pattern pattern = new Pattern(melody);
 		player.play(pattern);
 	}
-
-	public static void main(String args[]) {
-		MelodyPlayer test = new MelodyPlayer();
-		test.play("C6i D6h Rw E5h F4h G5w A5q B6w");
-	}
 }

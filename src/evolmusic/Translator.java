@@ -1,5 +1,8 @@
 package evolmusic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * Interface for converting between bit strings and JFugue-compatible strings.
  * 
@@ -43,8 +46,8 @@ public interface Translator {
 	public static final String REST = "R";
 	public static final int NOTE_BITS = 25; // number of bits representing a note
 	public static final String[] OCTAVES = {"5", "6"}; // possible octaves
-	public static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
-		"G#", "A", "A#", "B"}; // one-octave harmonic scale
+	public static final ArrayList<String> NOTES = new ArrayList<String>(Arrays.asList(
+			new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}));
 
 	/**
 	 * Translates between bit strings and JFugue-compatible melody strings.

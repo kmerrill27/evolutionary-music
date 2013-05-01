@@ -1,7 +1,5 @@
 package evolmusic;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -15,7 +13,6 @@ public class Bitifier implements Translator {
 
 	private static final int CHORD_LENGTH = 12; // number of bits in chord
 	private static final String USER_RATING = "0.0 "; // default (unknown) user rating of song
-	private static final ArrayList<String> PITCHES = new ArrayList<String>(Arrays.asList(NOTES));
 
 	public Bitifier() {		
 	}
@@ -62,7 +59,7 @@ public class Bitifier implements Translator {
 		for (String note : notes) {
 			// Check for no chord case
 			if (!note.isEmpty()) {
-				bitVector.set(PITCHES.indexOf(note));
+				bitVector.set(NOTES.indexOf(note));
 			}
 		}
 		return makeBitString(bitVector, CHORD_LENGTH);
@@ -84,7 +81,7 @@ public class Bitifier implements Translator {
 		if (octave.equals(OCTAVES[1])) {
 			offset += 12;
 		}
-		bitVector.set(PITCHES.indexOf(pitch) + offset);
+		bitVector.set(NOTES.indexOf(pitch) + offset);
 		String bitString = makeBitString(bitVector, NOTE_BITS);
 		
 		return bitString + bitifyTiedOver(bitString, duration.length());
@@ -126,10 +123,10 @@ public class Bitifier implements Translator {
 
 		// Test given melody
 		String melody = notationizer.translate(bitString);
-		//player.play(melody);
+		player.play(melody);
 		bitString = bitifier.translate(melody);
 		melody = notationizer.translate(bitString);
-		//player.play(melody);
+		player.play(melody);
 
 		// Test random melody
 		melody = new RandomMelody(2, 4).getMelodyString();

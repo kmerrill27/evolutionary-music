@@ -1,5 +1,6 @@
 package evolmusic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -13,12 +14,8 @@ import java.util.Random;
  */
 public class RandomMelody {
 
-	private static final String REST = "R";
 	private static final int MAX_CHORD_NOTES = 7;
-	
-	private static String[] pitches = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
-		"G#", "A", "A#", "B", REST};
-	private static final String[] OCTAVES = {"5", "6"};
+	private static final ArrayList<String> PITCHES = Translator.NOTES;
 	private static String[] DURATIONS = {"i", "ii", "iii", "iiii", "iiiii", "iiiiii",
 		"iiiiiii", "iiiiiiii"};
 	private static HashMap<String, Double> durationMap = new HashMap<String, Double>();
@@ -27,6 +24,7 @@ public class RandomMelody {
 	private String melody;
 
 	public RandomMelody(int numMeasures, int bpm) {
+		PITCHES.add(Translator.REST);
 		this.populateDurations();
 		this.melody = generateMelody(numMeasures, bpm);
 	}
@@ -82,10 +80,10 @@ public class RandomMelody {
 				continue;
 			} else {
 				beatsLeft -= durationMap.get(dur)*bpm;
-				pitch = pitches[random.nextInt(pitches.length)];
+				pitch = PITCHES.get(random.nextInt(PITCHES.size()));
 				// If rest is selected, octave is irrelevant.
-				if (pitch != REST) {
-					pitch += OCTAVES[random.nextInt(OCTAVES.length)];
+				if (!pitch.equals(Translator.REST)) {
+					pitch += Translator.OCTAVES[random.nextInt(Translator.OCTAVES.length)];
 				}
 				tempMeasure += pitch + dur + "_";
 			}
@@ -108,21 +106,14 @@ public class RandomMelody {
 			return "";
 		}
 		for (int i=0; i < numNotes; i++) {
-			// Exclude rest from chord formation
-			pitch = pitches[random.nextInt(pitches.length-1)];
+			// Exclude rest from chords
+			pitch = PITCHES.get(random.nextInt(PITCHES.size()-1));
 			if (tempChord.contains(pitch)) {
 				i--;
 			} else {
-				tempChord += pitch + OCTAVES[0] + "w" + "+";
+				tempChord += pitch + Translator.OCTAVES[0] + "w" + "+";
 			}
 		}
 		return tempChord;
-	}
-
-	public static void main(String args[]) {
-		RandomMelody melody = new RandomMelody(2, 4);
-		MelodyPlayer player = new MelodyPlayer();
-		System.out.println(melody.getMelodyString());
-		player.play(melody.getMelodyString());
 	}
 }
