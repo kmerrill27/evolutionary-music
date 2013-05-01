@@ -121,9 +121,9 @@ public class Translator {
 	private String parseChord(String bitString) {
 		StringBuilder tempChord = new StringBuilder();
 		int index = bitString.indexOf(NOTE);
-		// If the chord hsa no notes, represent it as a rest
+		// Check if the chord has no notes
 		if (index < 0) {
-			return REST;
+			return "";
 		}
 		while(index >= 0) {
 			tempChord.append(NOTES[index] + "+");
@@ -168,8 +168,8 @@ public class Translator {
 	 * @return JFugue-formatted melody string
 	 */
 	private String formatMelody() {
-		return formatChord(chord1) + "+" + formatMeasure(measure1) + " " +
-				formatChord(chord2) + "+" + formatMeasure(measure2);
+		return formatChord(chord1) + formatMeasure(measure1) + " " +
+				formatChord(chord2) + formatMeasure(measure2);
 	}
 
 	/**
@@ -177,12 +177,12 @@ public class Translator {
 	 * A chord is a grouping of whole notes played simultaneously.
 	 * 
 	 * @param chordString notes in chord - e.x. C+E+G
-	 * @return JFugue-formatted chord - e.x. C5w+E5w+G5w
+	 * @return JFugue-formatted chord for prepending - e.x. C5w+E5w+G5w+
 	 */
 	private String formatChord(String chordString) {
 		// If chord is a rest, do not specify octave
-		if (chordString == REST) {
-			return REST + WHOLE_NOTE;
+		if (chordString == "") {
+			return "";
 		}
 		StringBuilder formatChord = new StringBuilder();
 		// Separate out each note in the chord
@@ -191,8 +191,7 @@ public class Translator {
 			// Chords are always played in the lower octave
 			formatChord.append(chord + OCTAVES[0] + WHOLE_NOTE + "+");
 		}
-		// Remove trailing "+"
-		return formatChord.deleteCharAt(formatChord.length()-1).toString();
+		return formatChord.toString();
 	}
 
 	/**

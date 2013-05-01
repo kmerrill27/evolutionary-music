@@ -14,12 +14,13 @@ import java.util.Random;
 public class RandomMelody {
 
 	private static final String REST = "R";
-	private static final int MAX_CHORD_NOTES = 12;
+	private static final int MAX_CHORD_NOTES = 7;
 	
 	private static String[] pitches = {"C", "C#", "D", "D#", "E", "F", "F#", "G",
-		"G#", "A", "A#", "B", REST};
-	private static String[] octaves = {"4", "5"};
-	private static String[] durations = {"w", "h", "q", "i"};
+		"G#", "A", "A#", "B"};
+	private static final String[] OCTAVES = {"5", "6"};
+	private static String[] DURATIONS = {"i", "ii", "iii", "iiii", "iiiii", "iiiiii",
+		"iiiiiii", "iiiiiiii"};
 	private static HashMap<String, Double> durationMap = new HashMap<String, Double>();
 	private static Random random = new Random();
 
@@ -35,12 +36,16 @@ public class RandomMelody {
 	}
 
 	/**
-	 * Notes may be whole, half, quarter, eighth, or sixteenth.
+	 * Note durations must be divisible into eighth notes.
 	 */
 	private void populateDurations() {
-		durationMap.put("w", 1.0);
-		durationMap.put("h", .5);
-		durationMap.put("q", .25);
+		durationMap.put("iiiiiiii", 1.0);
+		durationMap.put("iiiiiii", .875);
+		durationMap.put("iiiiii", .75);
+		durationMap.put("iiiii", .625);
+		durationMap.put("iiii", .5);
+		durationMap.put("iii", .375);
+		durationMap.put("ii", .25);
 		durationMap.put("i", .125);
 	}
 
@@ -54,7 +59,7 @@ public class RandomMelody {
 	private String generateMelody(int numMeasures, int bpm) {
 		String tempMelody = "";
 		for (int i=0; i < numMeasures; i++) {
-			tempMelody += generateChord() + "+" + generateMeasure(bpm) + " ";
+			tempMelody += generateChord() + generateMeasure(bpm) + " ";
 		}
 		return tempMelody.trim();
 	}
@@ -71,7 +76,7 @@ public class RandomMelody {
 		String dur, pitch;
 		double beatsLeft = bpm;
 		while (beatsLeft != 0) {
-			dur = durations[random.nextInt(durations.length)];
+			dur = DURATIONS[random.nextInt(DURATIONS.length)];
 			// If selected duration will exceed the length of the measure, try again.
 			if (beatsLeft - durationMap.get(dur)*bpm < 0) {
 				continue;
@@ -80,11 +85,12 @@ public class RandomMelody {
 				pitch = pitches[random.nextInt(pitches.length)];
 				// If rest is selected, octave is irrelevant.
 				if (pitch != REST) {
-					pitch += octaves[random.nextInt(octaves.length)];
+					pitch += OCTAVES[random.nextInt(OCTAVES.length)];
 				}
 				tempMeasure += pitch + dur + "_";
 			}
 		}
+		// Remove trailing "_"
 		return tempMeasure.substring(0, tempMeasure.length()-1);
 	}
 
@@ -98,12 +104,12 @@ public class RandomMelody {
 		int numNotes = random.nextInt(MAX_CHORD_NOTES);
 		String tempChord = "";
 		if (numNotes == 0) {
-			return REST+"w";
+			return "";
 		}
 		for (int i=0; i < numNotes; i++) {
-			tempChord += pitches[random.nextInt(pitches.length)] + octaves[0] + "w" + "+";
+			tempChord += pitches[random.nextInt(pitches.length)] + OCTAVES[0] + "w" + "+";
 		}
-		return tempChord.substring(0, tempChord.length()-1);
+		return tempChord;
 	}
 
 	public static void main(String args[]) {
