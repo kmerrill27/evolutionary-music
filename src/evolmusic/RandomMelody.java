@@ -1,5 +1,6 @@
 package evolmusic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -13,17 +14,17 @@ import java.util.Random;
  */
 public class RandomMelody {
 
-	private static final String REST = "R";
-	
-	private static String[] pitches = {"A", "B", "C", "D", "E", "F", "G", REST};
-	private static String[] octaves = {"4", "5", "6"};
-	private static String[] durations = {"w", "h", "q", "i", "s"};
+	private static final int MAX_CHORD_NOTES = 7;
+	private static final ArrayList<String> PITCHES = Translator.NOTES;
+	private static String[] DURATIONS = {"i", "ii", "iii", "iiii", "iiiii", "iiiiii",
+		"iiiiiii", "iiiiiiii"};
 	private static HashMap<String, Double> durationMap = new HashMap<String, Double>();
 	private static Random random = new Random();
 
 	private String melody;
 
 	public RandomMelody(int numMeasures, int bpm) {
+		PITCHES.add(Translator.REST);
 		this.populateDurations();
 		this.melody = generateMelody(numMeasures, bpm);
 	}
@@ -33,14 +34,17 @@ public class RandomMelody {
 	}
 
 	/**
-	 * Notes may be whole, half, quarter, eighth, or sixteenth.
+	 * Note durations must be divisible into eighth notes.
 	 */
 	private void populateDurations() {
-		durationMap.put("w", 1.0);
-		durationMap.put("h", .5);
-		durationMap.put("q", .25);
+		durationMap.put("iiiiiiii", 1.0);
+		durationMap.put("iiiiiii", .875);
+		durationMap.put("iiiiii", .75);
+		durationMap.put("iiiii", .625);
+		durationMap.put("iiii", .5);
+		durationMap.put("iii", .375);
+		durationMap.put("ii", .25);
 		durationMap.put("i", .125);
-		durationMap.put("s", .0625);
 	}
 
 	/**
@@ -53,7 +57,7 @@ public class RandomMelody {
 	private String generateMelody(int numMeasures, int bpm) {
 		String tempMelody = "";
 		for (int i=0; i < numMeasures; i++) {
-			tempMelody += generateMeasure(bpm);
+			tempMelody += generateChord() + generateMeasure(bpm) + " ";
 		}
 		return tempMelody.trim();
 	}
@@ -68,28 +72,48 @@ public class RandomMelody {
 	private String generateMeasure(double bpm) {
 		String tempMeasure = "";
 		String dur, pitch;
-		while (bpm != 0) {
-			dur = durations[random.nextInt(durations.length)];
+		double beatsLeft = bpm;
+		while (beatsLeft != 0) {
+			dur = DURATIONS[random.nextInt(DURATIONS.length)];
 			// If selected duration will exceed the length of the measure, try again.
-			if (bpm - durationMap.get(dur) < 0) {
+			if (beatsLeft - durationMap.get(dur)*bpm < 0) {
 				continue;
 			} else {
-				bpm -= durationMap.get(dur);
-				pitch = pitches[random.nextInt(pitches.length)];
+				beatsLeft -= durationMap.get(dur)*bpm;
+				pitch = PITCHES.get(random.nextInt(PITCHES.size()));
 				// If rest is selected, octave is irrelevant.
-				if (pitch != REST) {
-					pitch += octaves[random.nextInt(octaves.length)];
+				if (!pitch.equals(Translator.REST)) {
+					pitch += Translator.OCTAVES[random.nextInt(Translator.OCTAVES.length)];
 				}
-				tempMeasure += pitch + dur + " ";
+				tempMeasure += pitch + dur + "_";
 			}
 		}
-		return tempMeasure;
+		// Remove trailing "_"
+		return tempMeasure.substring(0, tempMeasure.length()-1);
 	}
 
-	public static void main(String args[]) {
-		RandomMelody melody = new RandomMelody(4, 4);
-		MelodyPlayer player = new MelodyPlayer(melody.getMelodyString());
-		System.out.println(melody.getMelodyString());
-		player.play();
+	/**
+	 * A chord is a grouping of 0-4 notes, played for the duration
+	 * of a measure.
+	 * 
+	 * @return a string representation of a chord
+	 */
+	private String generateChord() {
+		int numNotes = random.nextInt(MAX_CHORD_NOTES);
+		String pitch;
+		String tempChord = "";
+		if (numNotes == 0) {
+			return "";
+		}
+		for (int i=0; i < numNotes; i++) {
+			// Exclude rest from chords
+			pitch = PITCHES.get(random.nextInt(PITCHES.size()-1));
+			if (tempChord.contains(pitch)) {
+				i--;
+			} else {
+				tempChord += pitch + Translator.OCTAVES[0] + "w" + "+";
+			}
+		}
+		return tempChord;
 	}
 }
