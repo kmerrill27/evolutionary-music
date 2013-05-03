@@ -3,6 +3,8 @@ package evolmusic;
 import java.io.File;
 import java.io.IOException;
 
+import javax.sound.midi.InvalidMidiDataException;
+
 import org.jfugue.Pattern;
 import org.jfugue.Player;
 
@@ -32,6 +34,25 @@ public class MelodyPlayer {
 	public void play(String melody) {
 		Pattern pattern = new Pattern(melody);
 		player.play(pattern);
+	}
+
+	/**
+	 * Loads melody from midi file.
+	 * 
+	 * @param filename midi file to save to (.mid extension)
+	 * @return JFugue string representing melody in file
+	 */
+	public String load(String filename) {
+		File midiFile = new File(filename);
+		try {
+			Pattern pattern = player.loadMidi(midiFile);
+			return pattern.getMusicString();
+		} catch (IOException e) {
+			System.out.println("Error reading file.");
+		} catch (InvalidMidiDataException e) {
+			System.out.println("Error reading melody from file.");
+		}
+		return "";
 	}
 
 	/**
