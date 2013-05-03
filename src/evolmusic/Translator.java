@@ -7,6 +7,7 @@ import java.util.Arrays;
  * Interface for converting between bit strings and JFugue-compatible strings.
  * 
  * @author Kim Merrill
+ * @date May 2, 2013
  * 
  *  * JFugue string:
  * "+" indicates that notes should be played together and "_" indicates

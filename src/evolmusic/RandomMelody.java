@@ -10,6 +10,7 @@ import java.util.Random;
  * for its contained notes.
  * 
  * @author Kim Merrill
+ * @date May 2, 2013
  *
  */
 public class RandomMelody {

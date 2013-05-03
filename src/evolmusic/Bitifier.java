@@ -7,6 +7,7 @@ import java.util.BitSet;
  * of a melody.
  * 
  * @author Kim Merrill
+ * @date May 2, 2013
  *
  */
 public class Bitifier implements Translator {

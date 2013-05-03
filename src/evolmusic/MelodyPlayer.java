@@ -11,6 +11,7 @@ import org.jfugue.Player;
  * Plays a melody specified as a String in JFugue format.
  * 
  * @author Kim Merrill
+ * @date May 2, 2013
  *
  */
 public class MelodyPlayer {

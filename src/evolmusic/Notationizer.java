@@ -6,6 +6,7 @@ package evolmusic;
  * for playback.
  * 
  * @author Kim Merrill
+ * @date May 2, 2013
  *
  */
 public class Notationizer implements Translator {
