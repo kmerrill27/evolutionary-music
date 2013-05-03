@@ -136,6 +136,7 @@ public class Bitifier implements Translator {
 		melody = notationizer.translate(bitString);
 		System.out.println(melody);
 		player.play(melody);
+		player.save(melody, "test.mid");
 	}
 
 }
