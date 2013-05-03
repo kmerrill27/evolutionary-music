@@ -21,11 +21,25 @@ public class MelodyPlayer {
 		player = new Player();
 	}
 
+	/**
+	 * Plays given melody.
+	 * 
+	 * @pre melody is a valid JFugue string
+	 * 
+	 * @param melody JFugue string representing melody
+	 */
 	public void play(String melody) {
 		Pattern pattern = new Pattern(melody);
 		player.play(pattern);
 	}
 
+	/**
+	 * Saves melody to midi file.
+	 * 
+	 * @param melody JFugue string representing melody
+	 * @param filename midi file to save to (.mid extension)
+	 * @return true if save was successful
+	 */
 	public boolean save(String melody, String filename) {
 		File midiFile = new File(filename);
 		try {

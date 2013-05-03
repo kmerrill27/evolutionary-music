@@ -12,8 +12,6 @@ public class Notationizer implements Translator {
 
 	private static final int NUM_NOTES = 16; // two 4/4 measures with min of eighth notes
 	private static final String NOTE = "1"; // 1-hot encoding of notes
-	private static final String EIGHTH_NOTE = "i";
-	private static final String WHOLE_NOTE = "w";
 	private static final String TIED = "T"; // indicates if a note is tied over
 
 	public Notationizer() {
@@ -146,8 +144,8 @@ public class Notationizer implements Translator {
 
 	/**
 	 * Collapses tied notes to be listed as a single note with a longer duration.
-	 * NOTE: does not error-check - i.e. if a note is not the same as the note
-	 * to which it is tied over, it will take the pitch of the first note
+	 * 
+	 * @ pre tied notes have the same pitch
 	 * 
 	 * @param noteString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
 	 * @return JFugue-formatted 4/4 measure - e.x. A6ii_G6i_A6i_F6i_D6i_C6i_B5i
