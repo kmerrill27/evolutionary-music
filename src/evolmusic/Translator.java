@@ -7,12 +7,8 @@ import java.util.Arrays;
  * Interface for converting between bit strings and JFugue-compatible strings.
  *
  * @author Kim Merrill
-<<<<<<< HEAD
- *
-=======
  * @date May 2, 2013
- * 
->>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
+ *
  *  * JFugue string:
  * "+" indicates that notes should be played together and "_" indicates
  * that notes should be played in sequence.
@@ -46,15 +42,6 @@ import java.util.Arrays;
  */
 public interface Translator {
 
-<<<<<<< HEAD
-    public static final String SPACE = " ";
-    public static final String PLUS = "+";
-    public static final String REST = "R";
-    public static final int NOTE_BITS = 25; // number of bits representing a note
-    public static final String[] OCTAVES = {"5", "6"}; // possible octaves
-    public static final ArrayList<String> NOTES = new ArrayList<String>(Arrays.asList(
-            new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}));
-=======
 	public static final String SPACE = " ";
 	public static final String PLUS = "+";
 	public static final String REST = "R";
@@ -64,7 +51,6 @@ public interface Translator {
 	public static final String[] OCTAVES = {"5", "6"}; // possible octaves
 	public static final ArrayList<String> NOTES = new ArrayList<String>(Arrays.asList(
 			new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}));
->>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
 
     /**
      * Translates between bit strings and JFugue-compatible melody strings.

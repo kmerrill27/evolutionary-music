@@ -14,27 +14,12 @@ import org.jfugue.Player;
 
 /**
  * Plays a melody specified as a String in JFugue format.
-<<<<<<< HEAD
-=======
- * 
- * @author Kim Merrill
- * @date May 2, 2013
->>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
  *
  * @author Kim Merrill
+ * @date May 2, 2013
+ *
  */
 public class MelodyPlayer {
-
-<<<<<<< HEAD
-    public MelodyPlayer() {
-    }
-
-    public void play(String melody) {
-        Player player = new Player();
-        Pattern pattern = new Pattern(melody);
-        player.play(pattern);
-    }
-=======
 	Player player;
 
 	public MelodyPlayer() {
@@ -43,9 +28,9 @@ public class MelodyPlayer {
 
 	/**
 	 * Plays given melody.
-	 * 
+	 *
 	 * @pre melody is a valid JFugue string
-	 * 
+	 *
 	 * @param melody JFugue string representing melody
 	 */
 	public void play(String melody) {
@@ -55,7 +40,7 @@ public class MelodyPlayer {
 
 	/**
 	 * Loads melody from midi file.
-	 * 
+	 *
 	 * @param filename midi file to save to (.mid extension)
 	 * @return JFugue string representing melody in file
 	 */
@@ -74,7 +59,7 @@ public class MelodyPlayer {
 
 	/**
 	 * Saves melody to midi file.
-	 * 
+	 *
 	 * @param melody JFugue string representing melody
 	 * @param filename midi file to save to (.mid extension)
 	 * @return true if save was successful
@@ -89,5 +74,4 @@ public class MelodyPlayer {
 			return false;
 		}
 	}
->>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
 }
