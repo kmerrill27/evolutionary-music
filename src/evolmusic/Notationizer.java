@@ -6,15 +6,22 @@ package evolmusic;
  * for playback.
  *
  * @author Kim Merrill
+ * @date May 2, 2013
  *
  */
 public class Notationizer implements Translator {
 
+<<<<<<< HEAD
     private static final int NUM_NOTES = 16; // two 4/4 measures with min of eighth notes
     private static final String NOTE = "1"; // 1-hot encoding of notes
     private static final String EIGHTH_NOTE = "i";
     private static final String WHOLE_NOTE = "w";
     private static final String TIED = "T"; // indicates if a note is tied over
+=======
+	private static final int NUM_NOTES = 16; // two 4/4 measures with min of eighth notes
+	private static final String NOTE = "1"; // 1-hot encoding of notes
+	private static final String TIED = "T"; // indicates if a note is tied over
+>>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
 
     public Notationizer() {
     }
@@ -144,6 +151,7 @@ public class Notationizer implements Translator {
         return formatChord.toString();
     }
 
+<<<<<<< HEAD
     /**
      * Collapses tied notes to be listed as a single note with a longer duration.
      * NOTE: does not error-check - i.e. if a note is not the same as the note
@@ -156,6 +164,20 @@ public class Notationizer implements Translator {
         StringBuilder formatMelody = new StringBuilder(melodyString);
         // Remove trailing "_"
         formatMelody.deleteCharAt(formatMelody.length()-1);
+=======
+	/**
+	 * Collapses tied notes to be listed as a single note with a longer duration.
+	 * 
+	 * @ pre tied notes have the same pitch
+	 * 
+	 * @param noteString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
+	 * @return JFugue-formatted 4/4 measure - e.x. A6ii_G6i_A6i_F6i_D6i_C6i_B5i
+	 */
+	private String formatMelody(String melodyString) {
+		StringBuilder formatMelody = new StringBuilder(melodyString);
+		// Remove trailing "_"
+		formatMelody.deleteCharAt(formatMelody.length()-1);
+>>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
 
         // Find all tied notes, indicated by "T", and collapse them
         int tiedIndex = formatMelody.indexOf(TIED);
