@@ -148,7 +148,7 @@ public class Notationizer implements Translator {
 	 *
 	 * @ pre tied notes have the same pitch
 	 *
-	 * @param noteString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
+	 * @param melodyString notes in a measure with ties - e.x. A6i_TA6i_G6i_A6i_F6i_D6i_C6i_B5i
 	 * @return JFugue-formatted 4/4 measure - e.x. A6ii_G6i_A6i_F6i_D6i_C6i_B5i
 	 */
 	private String formatMelody(String melodyString) {

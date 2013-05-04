@@ -1,8 +1,5 @@
 package evolmusic;
 
-<<<<<<< HEAD
-import org.jfugue.*;
-=======
 import java.io.File;
 import java.io.IOException;
 
@@ -10,7 +7,6 @@ import javax.sound.midi.InvalidMidiDataException;
 
 import org.jfugue.Pattern;
 import org.jfugue.Player;
->>>>>>> e71bf92eea148ed1cf5db1b9504c587fe53cbe6b
 
 /**
  * Plays a melody specified as a String in JFugue format.
