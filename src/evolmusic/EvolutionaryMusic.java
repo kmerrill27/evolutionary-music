@@ -9,9 +9,6 @@ import java.util.*;
  */
 public class EvolutionaryMusic {
 
-    // Breeder to breed melodies.
-    private static Breeder breeder = new Breeder();
-
     // Random number generator for mutation and for picking seeds.
     private static Random random = new Random();
 
@@ -27,6 +24,12 @@ public class EvolutionaryMusic {
 
     // Random melody generator.
     private static final RandomMelody randomGenerator = new RandomMelody(
+            NUMBER_MEASURES,
+            BEATS_PER_MEASURE
+    );
+
+    // Breeder to breed melodies.
+    private static Breeder breeder = new Breeder(
             NUMBER_MEASURES,
             BEATS_PER_MEASURE
     );
@@ -114,6 +117,7 @@ public class EvolutionaryMusic {
                 String bitString;
 
                 // Translate melody and insert spaces between each bit.
+                System.out.println(melody); // TODO REMOVE
                 bitString = bitifier.translate(melody);
                 bitString = bitString.replace("", " ").trim();
 
@@ -150,8 +154,9 @@ public class EvolutionaryMusic {
         };
 
         // Run the command, and print output if user wanted it.
+        Process process = null;
         try {
-            Process process = Runtime.getRuntime().exec(COMMAND);
+            process = Runtime.getRuntime().exec(COMMAND);
 
             if (printOutput) {
                 BufferedReader in = new BufferedReader(
@@ -168,6 +173,17 @@ public class EvolutionaryMusic {
             );
             e.printStackTrace();
             System.exit(1);
+        } finally {
+            try {
+                if (process != null) {
+                    process.waitFor();
+                }
+            } catch (InterruptedException e) {
+                System.out.println("Command was interrupted while executing." +
+                        " Exiting...");
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 
@@ -219,7 +235,12 @@ public class EvolutionaryMusic {
         Set<Double> scores = scoreMap.keySet();
 
         for (int i = 0; i < numSeeds; i++) {
-            double maxScore = Collections.max(scores);
+            // Sort the list to get the max score.
+            List<Double> scoreList = new ArrayList<Double>(scores);
+            Collections.sort(scoreList);
+            double maxScore = scoreList.get(scoreList.size() - 1);
+
+            // Grab the index of the max score in the map.
             int maxIndex = scoreMap.get(maxScore);
 
             // TODO remove
@@ -287,7 +308,7 @@ public class EvolutionaryMusic {
             writeMelodiesToFile(MELODY_FILE, population);
 
             // Run the neural net.
-            testMelodies(MELODY_FILE, SCORE_FILE, false);
+            testMelodies(MELODY_FILE, SCORE_FILE, true);
 
             // Get the indices of the highest scores.
             seedIndices = getSeedIndices(SCORE_FILE, NUMBER_SEEDS);
@@ -301,13 +322,16 @@ public class EvolutionaryMusic {
                 seeds[j] = population[seedIndices[j]];
             }
 
-            // Create a new population for the next generation.
-            String[] newPopulation = new String[POPULATION_SIZE];
-            for (int n = 0; n < seeds.length; n++) {
-                newPopulation[n] = seeds[n];
-            }
+            // Recreate the population for the next generation.
+            population = new String[POPULATION_SIZE];
+
+            // Copy over the first few from the seeds of last generation.
+            System.arraycopy(seeds, 0, population, 0, seeds.length);
+
+            // Breed the rest of the population.
             for (int n = seeds.length; n < population.length; n++) {
-                newPopulation[n] = getNewMelody(seeds, MUTATION_RATE);
+                System.out.println("hello"); // TODO remove
+                population[n] = getNewMelody(seeds, MUTATION_RATE);
             }
 
             // TODO
