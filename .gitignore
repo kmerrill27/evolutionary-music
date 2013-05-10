@@ -20,3 +20,6 @@ bin/
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# output folder
+melodies

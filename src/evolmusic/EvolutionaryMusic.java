@@ -13,12 +13,12 @@ public class EvolutionaryMusic {
     private static Random random = new Random();
 
     // Constants that determine evolutionary rate and length.
-    private static final int NUMBER_GENERATIONS = 10;
-    private static final int MUTATION_RATE = 5;
-    private static final int NUMBER_SEEDS = 5;
+    private static final int NUMBER_GENERATIONS = 1000;
+    private static final int MUTATION_RATE = 10;
+    private static final int NUMBER_SEEDS = 40;
 
     // Constants to determine constraints.
-    private static final int POPULATION_SIZE = 100;
+    private static final int POPULATION_SIZE = 200;
     private static final int NUMBER_MEASURES = 2;
     private static final int BEATS_PER_MEASURE = 4;
 
@@ -33,6 +33,21 @@ public class EvolutionaryMusic {
             NUMBER_MEASURES,
             BEATS_PER_MEASURE
     );
+
+    // Milestones to save midi files.
+    private static final Set<Integer> MILESTONES =
+            new HashSet<Integer>(Arrays.asList(new Integer[]{
+                    1,
+                    20,
+                    50,
+                    100,
+                    200,
+                    500,
+                    1000
+            }));
+
+    // MelodyPlayer instance used to save midi files.
+    private static final MelodyPlayer player = new MelodyPlayer();
 
     /**
      * Creates a directory at path/name. All neccessary parent directories will
@@ -241,7 +256,7 @@ public class EvolutionaryMusic {
             double maxScore = scoreList.get(scoreList.size() - 1);
 
             // Grab the index of the max score in the map.
-            int maxIndex = scoreMap.get(maxScore);
+            int maxIndex = scoreMap.get(maxScore) - 1;
 
             // TODO remove
             System.out.println("Max Score: " + maxScore);
@@ -284,7 +299,7 @@ public class EvolutionaryMusic {
      */
     public static void main(String[] args) {        // Hashmap of the score
         // of seeds for next generation, and the seeds.
-        int[] seedIndices = new int[NUMBER_SEEDS];
+        int[] seedIndices;
 
         // Populate our population with random melodies.
         String[] population = new String[POPULATION_SIZE];
@@ -294,6 +309,7 @@ public class EvolutionaryMusic {
 
         // Create a temporary folder for our temp files for the neural net.
         final String BASE_DIRECTORY = "melodies";
+        deleteFolder(BASE_DIRECTORY);
         createFolder(BASE_DIRECTORY);
 
         // Evolve for {NUMBER_GENERATIONS} generations.
@@ -312,6 +328,19 @@ public class EvolutionaryMusic {
 
             // Get the indices of the highest scores.
             seedIndices = getSeedIndices(SCORE_FILE, NUMBER_SEEDS);
+
+            // If we have reached a milestone, save some midi files.
+            if (MILESTONES.contains(i + 1)) {
+                final String SAVE_FOLDER =
+                        BASE_DIRECTORY + "/0GEN_" + (i + 1) + "SAVED";
+                createFolder(SAVE_FOLDER);
+
+                for (int index : seedIndices) {
+                    final String SAVE_FILE =
+                            SAVE_FOLDER + "/RANK_" + index + ".mid";
+                    player.save(population[index], SAVE_FILE);
+                }
+            }
 
             // If we are on the last generation, we can break at this point.
             if (i + 1 == NUMBER_GENERATIONS) break;
