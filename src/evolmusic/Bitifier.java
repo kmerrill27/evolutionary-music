@@ -16,9 +16,6 @@ public class Bitifier implements Translator {
 	private static final String USER_RATING = "0.0 "; // default (unknown) user rating of song
 	private static final String CHORD_SUFFIX = OCTAVES[0] + WHOLE_NOTE;
 
-//	public Bitifier() {
-//	}
-
 	@Override
 	public String translate(String song) {
 		String[] measures = song.split(SPACE);

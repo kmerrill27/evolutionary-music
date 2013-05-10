@@ -1,13 +1,9 @@
 package evolmusic;
 
-import java.util.HashMap;
-import java.util.Scanner;
-
 /**
  * @author Nicholas Cho
  */
 public class EvolutionaryMusic {
-
 
     /**
      * Main method that checks commandline parameters and then runs the program
@@ -16,6 +12,7 @@ public class EvolutionaryMusic {
      * @param args Commandline arguments. Use "-i" to run interactively.
      */
     public static void main(String[] args) {
+        // Constants to determine constraints.
         final int POPULATION_SIZE = 100;
         final int NUMBER_MEASURES = 2;
         final int BEATS_PER_MEASURE = 4;

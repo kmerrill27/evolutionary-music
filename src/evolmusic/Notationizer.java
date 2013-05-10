@@ -15,9 +15,6 @@ public class Notationizer implements Translator {
 	private static final String NOTE = "1"; // 1-hot encoding of notes
 	private static final String TIED = "T"; // indicates if a note is tied over
 
-    public Notationizer() {
-    }
-
     /**
      * @pre bitString has dimension of 424, length of 851
      */
