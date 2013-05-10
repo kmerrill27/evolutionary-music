@@ -1,0 +1,3 @@
+[submodule "vendor/neural-net"]
+	path = vendor/neural-net
+	url = git@github.com:kmerrill27/neural-net.git
