@@ -24,14 +24,19 @@ public class RandomMelody {
 
     private String melody;
 
+    private int numMeasures;
+    private int bpm;
+
     public RandomMelody(int numMeasures, int bpm) {
         PITCHES.add(Translator.REST);
         this.populateDurations();
-        this.melody = generateMelody(numMeasures, bpm);
+        this.numMeasures = numMeasures;
+        this.bpm = bpm;
+//        this.melody = generateMelody(numMeasures, bpm);
     }
 
     public String getMelodyString() {
-        return this.melody;
+        return generateMelody(this.numMeasures, this.bpm);
     }
 
     /**
