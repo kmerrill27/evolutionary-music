@@ -23,6 +23,7 @@ Thumbs.db
 
 # output folder
 melodies
+melodies*
 
 # excel file
 *.xlsx
